@@ -52,6 +52,10 @@ public class Usuario {
         con.desconectar();
         return true;
     }
+    
+    public String returnContr() {
+        return this.contr;
+    }
 
     public String returnDNI() {
         return this.dni;
@@ -63,6 +67,14 @@ public class Usuario {
     
     public String returnDinero() {
         return this.dinero;
+    }
+    
+    public String returnAp1() {
+        return this.ap1;
+    }
+    
+    public String returnAp2() {
+        return this.ap2;
     }
 
     public Usuario todoUsuario() {

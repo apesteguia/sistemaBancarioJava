@@ -49,7 +49,7 @@ public class Conexion {
                 String n = rs.getString(1);
 
                 if (s.equals(dni) && c.equals(contr) && s != "" && c != "") {
-                    JOptionPane.showMessageDialog(null, "Bienvenid@ " + n);
+                    //JOptionPane.showMessageDialog(null, "Bienvenid@ " + n);
                     return true;
                 }
             }
@@ -60,7 +60,7 @@ public class Conexion {
             return false;
         }
     }
-    
+
     public Boolean checkDNI(String dni) {
         try {
             st = cx.createStatement();
@@ -114,7 +114,7 @@ public class Conexion {
         String query = "insert into usuario (nombre, ap1, ap2, telefono, dni, direccion, correo, contr, dinero)" + " values (?,?,?,?,?,?,?,?,?)";
         int t = Integer.parseInt(tel);
         try {
-            System.out.println(nombre+ ap1+ ap2+ tel +dni+ direccion+ correo+ contr+ dinero);
+            System.out.println(nombre + ap1 + ap2 + tel + dni + direccion + correo + contr + dinero);
             PreparedStatement p = cx.prepareStatement(query);
             p.setString(1, nombre);
             p.setString(2, ap1);
@@ -125,7 +125,7 @@ public class Conexion {
             p.setString(7, correo);
             p.setString(8, contr);
             p.setString(9, dinero);
-            
+
             p.execute();
             JOptionPane.showMessageDialog(null, "Contacto creado correctamente");
         } catch (Exception e) {
@@ -134,11 +134,12 @@ public class Conexion {
         }
         return true;
     }
-    
-    public void getTransacciones(DefaultTableModel modelo) {
+
+    public void getTransacciones(DefaultTableModel modelo, Usuario usr) {
         try {
             st = cx.createStatement();
-            rs = st.executeQuery("select * from transacciones");
+            rs = st.executeQuery("select * from transacciones join usuario on transacciones.cod = usuario.dni "
+                    + "where usuario.nombre='" + usr.returnNombre() + "'");
             ResultSetMetaData rsMd = rs.getMetaData();
             int cantidadColumnas = rsMd.getColumnCount();
             modelo.addColumn("Remitente");
@@ -147,11 +148,11 @@ public class Conexion {
             modelo.addColumn("Cantidad");
             while (rs.next()) {
                 Object[] o = new Object[cantidadColumnas];
-                for (int i=0; i<cantidadColumnas; i++) {
-                    o[i] = rs.getObject(i+1);
+                for (int i = 0; i < cantidadColumnas; i++) {
+                    o[i] = rs.getObject(i + 1);
                 }
                 modelo.addRow(o);
-                
+
             }
             //JOptionPane.showMessageDialog(null, "No encontrado");
 
@@ -160,5 +161,34 @@ public class Conexion {
 
         }
     }
-}
 
+    public void movimientoCajero(String remitente, Date fecha, String tipo, long cantidad, String dni, Usuario usr) {
+        try {
+            System.out.println("bien");
+            String query = "insert into transacciones (remitente, fecha, tipo, cantidad, cod)" + " values (?,?,?,?,?)";
+            PreparedStatement p = cx.prepareStatement(query);
+            p.setString(1, remitente);
+            p.setDate(2, fecha);
+            p.setString(3, tipo);
+            p.setLong(4, cantidad);
+            p.setString(5, dni);
+            p.execute();
+
+            Integer dinUsr = Integer.parseInt(usr.returnDinero());
+            if (tipo.equals("ingreso")) {
+                dinUsr = dinUsr + (int) cantidad;
+            } else {
+                dinUsr = dinUsr - (int) cantidad;
+            }
+
+            query = "update usuario set dinero='" + dinUsr + "' where dni='" + dni + "'";
+            p = cx.prepareStatement(query);
+            p.execute();
+            JOptionPane.showMessageDialog(null, "Transaccion realizada con exito");
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error en transaccion " + e.getMessage());
+        }
+    }
+
+}
